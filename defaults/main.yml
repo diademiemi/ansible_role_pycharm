@@ -1,0 +1,15 @@
+---
+pycharm_edition: "community"
+pycharm_version: "2022.3"
+pycharm_url: "https://download.jetbrains.com/python/pycharm-{{ pycharm_edition }}-{{ pycharm_version }}.tar.gz"
+pycharm_user: "{{ ansible_user_id }}"
+
+pycharm_naming_map:
+  community:
+    name: "PyCharm Community Edition"
+    comment: "PyCharm Community Edition"
+    code: CE
+  professional:
+    name: "PyCharm Professional Edition"
+    comment: "PyCharm Professional Edition"
+    code: PE

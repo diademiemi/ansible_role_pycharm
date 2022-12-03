@@ -1,0 +1,63 @@
+---
+- name: Download PyCharm
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ pycharm_url }}"
+    dest: /tmp/pycharm{{ pycharm_edition }}-{{ pycharm_version }}.tar.gz
+    mode: 0644
+    owner: root
+    group: root
+
+- name: Ensure /opt/pycharm exists
+  become: true
+  ansible.builtin.file:
+    path: /opt/pycharm
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+
+- name: Extract PyCharm to /opt
+  become: true
+  ansible.builtin.unarchive:
+    src: /tmp/pycharm{{ pycharm_edition }}-{{ pycharm_version }}.tar.gz
+    dest: /opt/pycharm
+    remote_src: true
+    extra_opts:
+      - --strip-components=1
+
+- name: Create desktop entry
+  become: true
+  ansible.builtin.template:
+    src: pycharm.desktop.j2
+    dest: /usr/share/applications/pycharm.desktop
+    mode: 0644
+    owner: root
+    group: root
+
+- name: Create pycharm shell script
+  become: true
+  ansible.builtin.copy:
+    src: pycharm
+    dest: /usr/local/bin/pycharm
+    mode: 0755
+    owner: root
+    group: root
+
+- name: Ensure plugins directory exists
+  become: true
+  become_user: "{{ pycharm_user }}"
+  ansible.builtin.file:
+    path: "~/.local/share/JetBrains/PyCharm{{ pycharm_naming_map[pycharm_edition].code }}{{ pycharm_version | regex_search('\\d{1,}\\.\\d{1,}') }}/"
+    state: directory
+    mode: 0755
+    owner: "{{ pycharm_user }}"
+    group: "{{ pycharm_user }}"
+  when: pycharm_plugins is defined
+
+- name: Import task to install plugin
+  include_tasks: install_plugin.yml
+  when: pycharm_plugins is defined
+  loop: "{{ pycharm_plugins }}"
+  loop_control:
+    loop_var: pycharm_plugin
